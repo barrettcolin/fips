@@ -15,15 +15,15 @@ from mod import log, util
 from mod.tools import java, javac
 
 tools_urls = {
-    'win':      'https://dl.google.com/android/repository/sdk-tools-windows-3859397.zip',
-    'osx':      'https://dl.google.com/android/repository/sdk-tools-darwin-3859397.zip',
-    'linux':    'https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip'
+    'win':      'https://dl.google.com/android/repository/commandlinetools-win-9123335_latest.zip',
+    'osx':      'https://dl.google.com/android/repository/commandlinetools-mac-9123335_latest.zip',
+    'linux':    'https://dl.google.com/android/repository/commandlinetools-linux-9123335_latest.zip'
 }
 
 tools_archives = {
-    'win':      'sdk-tools-windows-3859397.zip',
-    'osx':      'sdk-tools-darwin-3859397.zip',
-    'linux':    'sdk-tools-linux-3859397.zip'
+    'win':      'commandlinetools-win-9123335_latest.zip',
+    'osx':      'commandlinetools-mac-9123335_latest.zip',
+    'linux':    'commandlinetools-linux-9123335_latest.zip'
 }
 
 #-------------------------------------------------------------------------------
@@ -59,7 +59,7 @@ def target_to_package_name(target):
 #-------------------------------------------------------------------------------
 def install_package(fips_dir, pkg):
     log.colored(log.BLUE, '>>> install Android SDK package: {}'.format(pkg))
-    sdkmgr_dir = get_sdk_dir(fips_dir) + '/tools/bin/'
+    sdkmgr_dir = get_sdk_dir(fips_dir) + '/cmdline-tools/latest/bin/'
     sdkmgr_path = sdkmgr_dir + 'sdkmanager'
     cmd = '{} --verbose {}'.format(sdkmgr_path, pkg)
     subprocess.call(cmd, cwd=sdkmgr_dir, shell=True)
@@ -116,11 +116,16 @@ def setup(fips_dir) :
     log.info("\nunpacking '{}'...".format(tools_archive_path))
     uncompress(fips_dir, tools_archive_path)
 
+    # cmdline-tools -> cmdline-tools/latest
+    log.info("\nmoving cmdline-tools to cmdline-tools/latest...")
+    os.rename(get_sdk_dir(fips_dir) + '/cmdline-tools', get_sdk_dir(fips_dir) + '/latest')
+    os.renames(get_sdk_dir(fips_dir) + '/latest', get_sdk_dir(fips_dir) + '/cmdline-tools/latest')
+
     # install the required SDK components through sdkmanager
-    install_package(fips_dir, '"platforms;android-28"')
-    install_package(fips_dir, '"build-tools;29.0.3"')
+    install_package(fips_dir, '"platforms;android-34"')
+    install_package(fips_dir, '"build-tools;35.0.0"')
     install_package(fips_dir, 'platform-tools')
-    install_package(fips_dir, 'ndk-bundle')
+    install_package(fips_dir, '"ndk;27.0.12077973"')
 
     # check for potentially breaking changes in build setup
     fips_cmake = fips_dir + '/cmake-toolchains/android.toolchain.orig'

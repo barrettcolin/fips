@@ -35,11 +35,11 @@ for jre_path in jre_paths:
         RT_JAR = jre_path
         break
 SDK_HOME = os.path.abspath(fips_dir + '/../fips-sdks/android/') + '/'
-BUILD_TOOLS = SDK_HOME + 'build-tools/29.0.3/'
+BUILD_TOOLS = SDK_HOME + 'build-tools/35.0.0/'
 EXE = '.exe' if platform.system() == 'Windows' else ''
 BAT = '.bat' if platform.system() == 'Windows' else ''
 AAPT = BUILD_TOOLS + 'aapt' + EXE
-DX = BUILD_TOOLS + 'dx' + BAT
+D8 = BUILD_TOOLS + 'd8' + BAT
 ZIPALIGN = BUILD_TOOLS + 'zipalign' + EXE
 APKSIGNER = BUILD_TOOLS + 'apksigner' + BAT
 
@@ -52,7 +52,7 @@ if not os.path.isfile(RT_JAR):
 if not os.path.isdir(SDK_HOME):
     print("Can't find Android SDK '{}'!".format(SDK_HOME))
     sys.exit(10)
-for tool in [AAPT, DX, ZIPALIGN, APKSIGNER]:
+for tool in [AAPT, D8, ZIPALIGN, APKSIGNER]:
     if not os.path.isfile(tool):
         print("Can't find required tool in Android SDK: {}".format(tool))
         sys.exit(10)
@@ -152,7 +152,7 @@ subprocess.call(cmd, cwd=apk_dir)
 
 # convert Java byte code to DEX
 cmd = [
-    DX,
+    D8,
     '--verbose',
     '--dex', '--output=bin/classes.dex',
     './obj'

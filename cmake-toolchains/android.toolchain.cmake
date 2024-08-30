@@ -43,7 +43,7 @@ set(FIPS_ANDROID_COMPILER_FLAGS_C)
 # FIXME: FIPS_EXCEPTIONS and FIPS_RTTI
 
 # Set ANDROID_NDK to FIPS sdk path
-get_filename_component(ANDROID_NDK "${CMAKE_CURRENT_LIST_DIR}/../../fips-sdks/android/ndk-bundle" ABSOLUTE)
+get_filename_component(ANDROID_NDK "${CMAKE_CURRENT_LIST_DIR}/../../fips-sdks/android/ndk/27.0.12077973" ABSOLUTE)
 
 cmake_minimum_required(VERSION 3.6.0)
 
