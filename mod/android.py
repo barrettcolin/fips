@@ -105,7 +105,7 @@ def setup(fips_dir) :
     # first make sure that java is present, otherwise the Android
     # SDK setup will finish without errors, but is not actually usable
     if not java.check_exists(fips_dir) or not javac.check_exists(fips_dir) :
-        log.error("please install Java JDK 8 (see './fips diag tools')")
+        log.error("please install Java JDK 17 (see './fips diag tools')")
     ensure_sdk_dirs(fips_dir)
 
     # download the command line tools archive

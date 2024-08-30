@@ -20,20 +20,10 @@ import os
 import argparse
 import shutil
 import subprocess
+from pathlib import Path
 import platform
 
 fips_dir = os.path.normpath(os.path.dirname(os.path.abspath(__file__)) + '/..')
-# find the path of rt.jar
-jre_paths = subprocess.check_output(['java', 'GetRT'], cwd=fips_dir+'/tools').decode("utf-8")
-if platform.system() == 'Windows':
-    jre_paths = jre_paths.replace('\\','/').split(';')
-else:
-    jre_paths = jre_paths.split(':')
-RT_JAR = None
-for jre_path in jre_paths:
-    if jre_path.endswith('rt.jar'):
-        RT_JAR = jre_path
-        break
 SDK_HOME = os.path.abspath(fips_dir + '/../fips-sdks/android/') + '/'
 BUILD_TOOLS = SDK_HOME + 'build-tools/35.0.0/'
 EXE = '.exe' if platform.system() == 'Windows' else ''
@@ -42,13 +32,8 @@ AAPT = BUILD_TOOLS + 'aapt' + EXE
 D8 = BUILD_TOOLS + 'd8' + BAT
 ZIPALIGN = BUILD_TOOLS + 'zipalign' + EXE
 APKSIGNER = BUILD_TOOLS + 'apksigner' + BAT
+MIN_VERSION = 21
 
-if not RT_JAR:
-    print("Can't find rt.jar (is the Java JDK installed?)")
-    sys.exit(10)
-if not os.path.isfile(RT_JAR):
-    print("Can't find Java runtime package '{}'!".format(RT_JAR))
-    sys.exit(10)
 if not os.path.isdir(SDK_HOME):
     print("Can't find Android SDK '{}'!".format(SDK_HOME))
     sys.exit(10)
@@ -109,7 +94,7 @@ with open(apk_dir + 'AndroidManifest.xml', 'w') as f:
     f.write('  package="{}"\n'.format(pkg_name))
     f.write('  android:versionCode="1"\n')
     f.write('  android:versionName="1.0">\n')
-    f.write('  <uses-sdk android:minSdkVersion="11" android:targetSdkVersion="{}"/>\n'.format(args.version))
+    f.write('  <uses-sdk android:minSdkVersion="{}" android:targetSdkVersion="{}"/>\n'.format(MIN_VERSION, args.version))
     f.write('  <uses-permission android:name="android.permission.INTERNET"></uses-permission>\n')
     f.write('  <uses-feature android:glEsVersion="0x00030000"></uses-feature>\n')
     f.write('  <application android:label="{}" android:debuggable="true" android:hasCode="false">\n'.format(args.name))
@@ -142,20 +127,23 @@ subprocess.call(cmd, cwd=apk_dir)
 # compile Java sources
 cmd = [
     'javac', '-d', './obj',
-    '-source', '1.7',
-    '-target', '1.7',
+    '-classpath', SDK_HOME + 'platforms/android-' + args.version + '/android.jar',
     '-sourcepath', 'src',
-    '-bootclasspath', RT_JAR,
+    '-source', '17',
+    '-target', '17',
     src_dir + '/R.java'
 ]
 subprocess.call(cmd, cwd=apk_dir)
 
+# d8/r8, see https://r8.googlesource.com/r8/+/refs/heads/main/README.md
 # convert Java byte code to DEX
 cmd = [
-    D8,
-    '--verbose',
-    '--dex', '--output=bin/classes.dex',
-    './obj'
+    D8
+] + list(Path(apk_dir + '/obj').rglob('*.class')) + [
+    '--release',
+    '--min-api', '{}'.format(MIN_VERSION),
+    '--output', './bin',
+    #'--lib', SDK_HOME + 'platforms/android-' + args.version + '/android.jar'
 ]
 subprocess.call(cmd, cwd=apk_dir)
 

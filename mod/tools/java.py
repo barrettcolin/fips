@@ -5,7 +5,7 @@ import re
 name = 'java'
 platforms = ['osx', 'linux', 'win']
 optional = True
-not_found = "version 8 required for Android development, installed with the Java JDK"
+not_found = "version 17 required for Android development, installed with the Java JDK"
 
 #------------------------------------------------------------------------------
 def check_exists(fips_dir) :
@@ -16,7 +16,7 @@ def check_exists(fips_dir) :
     except (OSError, subprocess.CalledProcessError) :
         return False
     ver = re.search("version \"([^\\s]+)\"", res)
-    if not ver or not ver.group(1).startswith('1.8') :
+    if not ver or not ver.group(1).startswith('17.') :
         return False
     return True
 
